@@ -16,12 +16,9 @@ app.post('/accounts/new', readBody, function (req, res) {
   userInfo.accountNumber = "REALOAD" + genAccountNumber();
   userInfo.balance = 0;
   filename = 'data/accounts/' + userInfo.accountNumber
-  fs.open(filename, 'w', (err, file)=>{
-    fs.writeFile(file, JSON.stringify(userInfo), ()=>{
-      
-    })
+  writeToFile(filename, userInfo, ()=>{
+    respond(res, userInfo)
   })
-  res.send(userInfo.accountNumber);
 })
 
 app.post('/accounts/:accnumber/balance', readBody, function (req, res) {
@@ -32,6 +29,18 @@ app.listen(3000, ()=>{
   console.log("Application is listening on port 3000")
 })
 
+function respond(res, body) { 
+  res.set('Content-Type', 'application/json').json(body)
+}
+
+function writeToFile(filename, content, callback){
+  fs.open(filename, 'w', (err, file) => {
+    fs.writeFile(file, JSON.stringify(content), (err) => {
+      callback()
+    })
+  })
+}
+
 function readBody(req, res, next) {
   let body = '';
   req.on('data', chunk => {
@@ -40,8 +49,7 @@ function readBody(req, res, next) {
   req.on('end', () => {
     const data = JSON.parse(body)
     req.payload = data
-    next()
-    res.end('ok');
+    next();
   });
 
 }
